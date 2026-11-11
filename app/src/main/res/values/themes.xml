@@ -1,5 +1,11 @@
 <resources>
+    <color name="notifii_canvas_light">#FAFBFC</color>
+    <color name="notifii_canvas_dark">#0B0B0C</color>
+    <color name="notifii_siren">#FF4D4F</color>
+    <color name="notifii_brand">#00B8D4</color>
+
     <style name="Theme.Notifii" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/notifii_canvas_light</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
