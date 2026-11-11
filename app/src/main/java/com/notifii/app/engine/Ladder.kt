@@ -31,7 +31,7 @@ fun decide(
     night: Boolean,
 ): Decision {
     val matched = rules.filter { matches(it, note, recentCount) }
-    val person = note.sender?.let { s -> placements.firstOrNull { it.pkg == note.pkg && it.person.equals(s, ignoreCase = true) } }
+    val person = note.sender?.takeIf { it.isNotBlank() }?.let { s -> placements.firstOrNull { it.pkg == note.pkg && it.person.equals(s, ignoreCase = true) } }
     val app = placements.firstOrNull { it.pkg == note.pkg && it.isApp }
 
     val base = when {

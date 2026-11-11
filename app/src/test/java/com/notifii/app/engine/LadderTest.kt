@@ -44,6 +44,12 @@ class LadderTest {
         assertEquals(Rung.SIREN, decide(n, listOf(wa, mom), emptyList(), 1, false).rung)
     }
 
+    @Test fun blankSenderIsNotAPerson() {
+        val d = decide(note("hi", sender = ""), listOf(upworkLater), emptyList(), 1, false)
+        assertEquals(Rung.LATER, d.rung)
+        assertEquals("Upwork is on Later", d.reason)
+    }
+
     @Test fun nightHoldsRingButNotSiren() {
         assertEquals(Rung.LATER, decide(note("hi"), emptyList(), emptyList(), 1, night = true).rung)
         val siren = Placement("com.upwork", "", "Upwork", Rung.SIREN)

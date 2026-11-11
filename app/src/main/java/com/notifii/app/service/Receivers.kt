@@ -100,7 +100,12 @@ object Digest {
             .setContentIntent(app.openApp("now"))
             .setAutoCancel(true)
             .build()
-        runCatching { NotificationManagerCompat.from(context).notify(DIGEST_ID, n) } // no-op without notification permission
+        // Without notification permission there's nothing to show; items stay pending and visible in Now.
+        if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) return
+        NotificationManagerCompat.from(context).notify(DIGEST_ID, n)
         app.dao.deliverAll()
     }
 
