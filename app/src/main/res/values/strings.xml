@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Notifii</string>
+    <string name="channel_alarm_name">Critical Alerts</string>
+    <string name="channel_alarm_description">Plays loud persistent alarm when critical notifications arrive</string>
+    <string name="channel_service_name">Background Listener</string>
+    <string name="channel_service_description">Keeps Notifii active to evaluate notifications</string>
+</resources>
