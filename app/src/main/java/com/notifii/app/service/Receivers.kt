@@ -87,15 +87,15 @@ object Digest {
         val items = app.dao.pendingOnce()
         if (items.isEmpty()) return
         val style = NotificationCompat.InboxStyle()
-        items.take(6).forEach { style.addLine("${it.appLabel}: ${it.title.ifBlank { it.text }}") }
-        if (items.size > 6) style.setSummaryText("+${items.size - 6} more")
-        val title = if (items.size == 1) "1 notification waited for you" else "${items.size} notifications waited for you"
+        items.take(6).forEach { style.addLine(context.getString(R.string.digest_line, it.appLabel, it.title.ifBlank { it.text })) }
+        if (items.size > 6) style.setSummaryText(context.getString(R.string.digest_more, items.size - 6))
+        val title = context.getString(R.string.digest_title, items.size)
         val apps = items.map { it.appLabel }.distinct()
         val n = NotificationCompat.Builder(context, NotifiiApp.CHANNEL_DIGEST)
             .setSmallIcon(R.drawable.ic_stat_notifii)
             .setColor(ContextCompat.getColor(context, R.color.notifii_brand))
             .setContentTitle(title)
-            .setContentText(apps.take(3).joinToString(", ") + if (apps.size > 3) " and more" else "")
+            .setContentText(apps.take(3).joinToString(", ").let { if (apps.size > 3) context.getString(R.string.digest_and_more, it) else it })
             .setStyle(style)
             .setContentIntent(app.openApp("now"))
             .setAutoCancel(true)

@@ -16,6 +16,7 @@ import com.notifii.app.engine.inWindow
 import com.notifii.app.notifii
 import com.notifii.app.siren.Siren
 import com.notifii.app.siren.SirenPayload
+import com.notifii.app.ui.reasonText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -93,17 +94,18 @@ class ListenerService : NotificationListenerService() {
         val replyAction = n.actions?.firstOrNull { a -> a.remoteInputs?.any { it.allowFreeFormInput } == true }
         val tap = n.contentIntent
         scope.launch {
-            val id = notifii.dao.record(
-                VaultEntry(
+            val entry = VaultEntry(
                     pkg = note.pkg, appLabel = appLabel, title = title, text = text, sender = sender,
-                    postedAt = sbn.postTime, rung = decision.rung, reason = decision.reason, ruleId = decision.ruleId,
+                    postedAt = sbn.postTime, rung = decision.rung, why = decision.why, subject = decision.subject,
+                    night = decision.night, ruleId = decision.ruleId,
                     pending = decision.rung == Rung.LATER,
-                )
             )
+            val id = notifii.dao.record(entry)
             tap?.let { Live.taps[id] = it }
             if (decision.rung == Rung.SIREN) {
                 replyAction?.let { Live.replies[id] = it }
-                Siren.start(this@ListenerService, SirenPayload(id, note.pkg, appLabel, title, text, decision.reason))
+                val reason = reasonText(this@ListenerService, entry, rules)
+                Siren.start(this@ListenerService, SirenPayload(id, note.pkg, appLabel, title, text, reason))
             }
         }
     }

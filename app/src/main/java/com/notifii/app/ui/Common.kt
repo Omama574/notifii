@@ -1,5 +1,6 @@
 package com.notifii.app.ui
 
+import com.notifii.app.R
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
@@ -74,12 +75,12 @@ fun sirenNeeds(context: Context): List<SirenNeed> {
     val pkg = Uri.parse("package:${context.packageName}")
     val power = context.getSystemService(PowerManager::class.java)
     return buildList {
-        add(SirenNeed("Ring through Do Not Disturb", "So Siren isn’t silenced by Focus or bedtime modes.", nm.isNotificationPolicyAccessGranted, Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)))
+        add(SirenNeed(context.getString(R.string.sc_dnd), context.getString(R.string.sc_dnd_body), nm.isNotificationPolicyAccessGranted, Intent(Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS)))
         if (Build.VERSION.SDK_INT >= 34) {
-            add(SirenNeed("Show over the lock screen", "So the alarm screen appears even when the phone is locked.", nm.canUseFullScreenIntent(), Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, pkg)))
+            add(SirenNeed(context.getString(R.string.sc_lock), context.getString(R.string.sc_lock_body), nm.canUseFullScreenIntent(), Intent(Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT, pkg)))
         }
         @Suppress("BatteryLife")
-        add(SirenNeed("Keep Notifii running", "Stops Android from putting Notifii to sleep and missing a Siren.", power.isIgnoringBatteryOptimizations(context.packageName), Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, pkg)))
+        add(SirenNeed(context.getString(R.string.sc_battery), context.getString(R.string.sc_battery_body), power.isIgnoringBatteryOptimizations(context.packageName), Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, pkg)))
     }
 }
 
@@ -118,7 +119,7 @@ fun RungChip(rung: Rung) {
         Row(Modifier.padding(horizontal = 8.dp, vertical = 3.dp), verticalAlignment = Alignment.CenterVertically) {
             RungDot(rung, 6.dp)
             Spacer(Modifier.width(5.dp))
-            Text(rung.label, style = MaterialTheme.typography.labelSmall, color = rung.color())
+            Text(rung.label(), style = MaterialTheme.typography.labelSmall, color = rung.color())
         }
     }
 }
@@ -127,8 +128,8 @@ fun RungChip(rung: Rung) {
 
 fun shortTime(context: Context, ts: Long, now: Long = System.currentTimeMillis()): String {
     val diff = now - ts
-    if (diff < 60_000) return "now"
-    if (diff < 60 * 60_000) return "${diff / 60_000}m"
+    if (diff < 60_000) return context.getString(R.string.time_now)
+    if (diff < 60 * 60_000) return context.getString(R.string.time_minutes, (diff / 60_000).toInt())
     val a = Calendar.getInstance().apply { timeInMillis = ts }
     val b = Calendar.getInstance().apply { timeInMillis = now }
     if (a.get(Calendar.YEAR) == b.get(Calendar.YEAR) && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR)) return DateFormat.getTimeFormat(context).format(ts)
@@ -144,11 +145,11 @@ fun startOfToday(): Long = Calendar.getInstance().apply {
     set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
 }.timeInMillis
 
-fun dayLabel(ts: Long): String {
+fun dayLabel(context: Context, ts: Long): String {
     val start = startOfToday()
     return when {
-        ts >= start -> "Today"
-        ts >= start - 86_400_000L -> "Yesterday"
+        ts >= start -> context.getString(R.string.time_today)
+        ts >= start - 86_400_000L -> context.getString(R.string.time_yesterday)
         else -> DateFormat.format("EEEE, d MMMM", ts).toString()
     }
 }

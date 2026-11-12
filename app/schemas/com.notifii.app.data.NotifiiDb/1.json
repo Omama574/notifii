@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "b87f1b68f3d7149ddcf4e7fd6ab4a646",
+    "identityHash": "3918b144a4c16e2624a05368e8ea77d9",
     "entities": [
       {
         "tableName": "placements",
@@ -113,7 +113,7 @@
       },
       {
         "tableName": "vault",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `pkg` TEXT NOT NULL, `appLabel` TEXT NOT NULL, `title` TEXT NOT NULL, `text` TEXT NOT NULL, `sender` TEXT, `postedAt` INTEGER NOT NULL, `rung` TEXT NOT NULL, `reason` TEXT NOT NULL, `ruleId` INTEGER, `pending` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `pkg` TEXT NOT NULL, `appLabel` TEXT NOT NULL, `title` TEXT NOT NULL, `text` TEXT NOT NULL, `sender` TEXT, `postedAt` INTEGER NOT NULL, `rung` TEXT NOT NULL, `why` TEXT NOT NULL, `subject` TEXT NOT NULL, `night` INTEGER NOT NULL, `ruleId` INTEGER, `pending` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -164,9 +164,21 @@
             "notNull": true
           },
           {
-            "fieldPath": "reason",
-            "columnName": "reason",
+            "fieldPath": "why",
+            "columnName": "why",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "subject",
+            "columnName": "subject",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "night",
+            "columnName": "night",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -223,7 +235,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b87f1b68f3d7149ddcf4e7fd6ab4a646')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '3918b144a4c16e2624a05368e8ea77d9')"
     ]
   }
 }

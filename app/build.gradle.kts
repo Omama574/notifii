@@ -31,6 +31,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions { jvmTarget = "17" }
+    // Lets people pick Notifii's language separately from the phone's (Android 13+ settings).
+    androidResources { generateLocaleConfig = true }
     buildFeatures {
         compose = true
         buildConfig = true

@@ -1,5 +1,7 @@
 package com.notifii.app.ui
 
+import com.notifii.app.R
+import androidx.compose.ui.res.stringResource
 import android.Manifest
 import android.app.Activity
 import android.content.Context
@@ -68,7 +70,6 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.notifii.app.data.Rule
 import com.notifii.app.data.Rung
 import com.notifii.app.data.VaultEntry
-import com.notifii.app.engine.describe
 import com.notifii.app.engine.largestAmount
 import com.notifii.app.engine.suggestWords
 import com.notifii.app.engine.trimAmount
@@ -128,6 +129,7 @@ fun SheetHost(vm: NotifiiViewModel, sheets: Sheets) {
 private fun WhySheet(vm: NotifiiViewModel, sheets: Sheets, e: VaultEntry) {
     val context = LocalContext.current
     val placements by vm.placements.collectAsState()
+    val rules by vm.rules.collectAsState()
     val appRung = placements.firstOrNull { it.pkg == e.pkg && it.isApp }?.rung
     val personRung = e.sender?.let { s -> placements.firstOrNull { it.pkg == e.pkg && it.person.equals(s, true) }?.rung }
 
@@ -149,27 +151,27 @@ private fun WhySheet(vm: NotifiiViewModel, sheets: Sheets, e: VaultEntry) {
             Icon(Icons.Outlined.Lightbulb, null, tint = e.rung.color())
             Spacer(Modifier.width(12.dp))
             Column {
-                Text("Why it went to ${e.rung.label}", style = MaterialTheme.typography.titleSmall)
-                Text(e.reason, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.why_went_to, e.rung.label()), style = MaterialTheme.typography.titleSmall)
+                Text(reasonText(context, e, rules), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
     Spacer(Modifier.height(24.dp))
-    Text("How loud should this be?", style = MaterialTheme.typography.titleMedium)
+    Text(stringResource(R.string.how_loud), style = MaterialTheme.typography.titleMedium)
     Spacer(Modifier.height(12.dp))
-    Text("Everything from ${e.appLabel}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(stringResource(R.string.everything_from, e.appLabel), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(6.dp))
     RungSelector(appRung) { placeAndFollowUp(vm, sheets, context, e.pkg, "", e.appLabel, it) }
     if (!e.sender.isNullOrBlank()) {
         Spacer(Modifier.height(16.dp))
-        Text("Only ${e.sender}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(stringResource(R.string.only_person, e.sender.orEmpty()), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(6.dp))
         RungSelector(personRung) { placeAndFollowUp(vm, sheets, context, e.pkg, e.sender, e.sender, it) }
     }
     Spacer(Modifier.height(24.dp))
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        OutlinedButton(onClick = { sheets.current = Sheet.MakeException(e) }, modifier = Modifier.weight(1f).height(52.dp)) { Text("Make an exception") }
-        Button(onClick = { openEntry(context, e); sheets.current = null }, modifier = Modifier.weight(1f).height(52.dp)) { Text("Open") }
+        OutlinedButton(onClick = { sheets.current = Sheet.MakeException(e) }, modifier = Modifier.weight(1f).height(52.dp)) { Text(stringResource(R.string.make_exception)) }
+        Button(onClick = { openEntry(context, e); sheets.current = null }, modifier = Modifier.weight(1f).height(52.dp)) { Text(stringResource(R.string.open)) }
     }
 }
 
@@ -184,7 +186,7 @@ fun RungSelector(selected: Rung?, onSelect: (Rung) -> Unit) {
                 shape = SegmentedButtonDefaults.itemShape(i, rungs.size),
                 icon = { if (selected == r) Icon(Icons.Rounded.Check, null, Modifier.size(16.dp)) else RungDot(r, 8.dp) },
                 colors = SegmentedButtonDefaults.colors(activeContainerColor = r.color().copy(alpha = 0.22f), activeContentColor = MaterialTheme.colorScheme.onSurface),
-            ) { Text(r.label, maxLines = 1) }
+            ) { Text(r.label(), maxLines = 1) }
         }
     }
 }
@@ -214,23 +216,23 @@ private fun ExceptionSheet(vm: NotifiiViewModel, sheets: Sheets, e: VaultEntry) 
     var preview by remember { mutableStateOf<Preview?>(null) }
     LaunchedEffect(rule) { delay(200); preview = if (hasCondition) vm.preview(rule) else null }
 
-    Text("Make an exception", style = MaterialTheme.typography.headlineSmall)
-    Text("Notifications like this one can go to a different rung than the rest.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(stringResource(R.string.make_exception), style = MaterialTheme.typography.headlineSmall)
+    Text(stringResource(R.string.exc_intro), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(20.dp))
 
-    Text("When a notification is…", style = MaterialTheme.typography.titleSmall)
+    Text(stringResource(R.string.exc_when), style = MaterialTheme.typography.titleSmall)
     Spacer(Modifier.height(8.dp))
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        FilterChip(selected = useApp, onClick = { useApp = !useApp }, label = { Text("From ${e.appLabel}") }, leadingIcon = { AppIcon(e.pkg, 18.dp) })
-        if (!e.sender.isNullOrBlank()) FilterChip(selected = useSender, onClick = { useSender = !useSender }, label = { Text("By ${e.sender}") })
-        FilterChip(selected = burst, onClick = { burst = !burst }, label = { Text("3+ in 2 minutes") })
-        if (detectedAmount != null || amountOn) FilterChip(selected = amountOn, onClick = { amountOn = !amountOn }, label = { Text("Amount over…") })
+        FilterChip(selected = useApp, onClick = { useApp = !useApp }, label = { Text(stringResource(R.string.exc_from, e.appLabel)) }, leadingIcon = { AppIcon(e.pkg, 18.dp) })
+        if (!e.sender.isNullOrBlank()) FilterChip(selected = useSender, onClick = { useSender = !useSender }, label = { Text(stringResource(R.string.exc_by, e.sender.orEmpty())) })
+        FilterChip(selected = burst, onClick = { burst = !burst }, label = { Text(stringResource(R.string.exc_burst)) })
+        if (detectedAmount != null || amountOn) FilterChip(selected = amountOn, onClick = { amountOn = !amountOn }, label = { Text(stringResource(R.string.exc_amount)) })
     }
     if (amountOn) {
         Spacer(Modifier.height(12.dp))
         OutlinedTextField(
             value = amount, onValueChange = { v -> amount = v.filter { it.isDigit() || it == '.' } },
-            label = { Text("Minimum amount") }, singleLine = true,
+            label = { Text(stringResource(R.string.exc_min_amount)) }, singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
             modifier = Modifier.fillMaxWidth(),
         )
@@ -238,32 +240,32 @@ private fun ExceptionSheet(vm: NotifiiViewModel, sheets: Sheets, e: VaultEntry) 
     Spacer(Modifier.height(12.dp))
     OutlinedTextField(
         value = words, onValueChange = { words = it },
-        label = { Text("Containing any of these words") }, placeholder = { Text("invited, urgent, offer") },
+        label = { Text(stringResource(R.string.exc_words)) }, placeholder = { Text(stringResource(R.string.exc_words_hint)) },
         singleLine = true, modifier = Modifier.fillMaxWidth(),
     )
     if (suggestions.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             suggestions.filter { s -> rule.wordList.none { it.equals(s, true) } }.forEach { s ->
-                FilterChip(selected = false, onClick = { words = (rule.wordList + s).joinToString(", ") }, label = { Text("+ $s") })
+                FilterChip(selected = false, onClick = { words = (rule.wordList + s).joinToString(", ") }, label = { Text(stringResource(R.string.exc_add_word, s)) })
             }
         }
     }
     Spacer(Modifier.height(20.dp))
-    Text("…put it on", style = MaterialTheme.typography.titleSmall)
+    Text(stringResource(R.string.exc_put_on), style = MaterialTheme.typography.titleSmall)
     Spacer(Modifier.height(8.dp))
     RungSelector(rung) { rung = it }
 
     Spacer(Modifier.height(20.dp))
     Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.surfaceContainerHigh) {
         Column(Modifier.fillMaxWidth().padding(16.dp)) {
-            Text(if (hasCondition) describe(rule) else "Pick at least one condition", style = MaterialTheme.typography.titleSmall)
+            Text(if (hasCondition) describe(context, rule) else stringResource(R.string.exc_pick_one), style = MaterialTheme.typography.titleSmall)
             val p = preview
             if (hasCondition && p != null) {
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    if (p.total == 0) "Your Vault is still empty, so there’s nothing to test against yet."
-                    else "Would have caught ${p.matched} of ${p.total} notifications in the last 7 days.",
+                    if (p.total == 0) stringResource(R.string.exc_vault_empty)
+                    else stringResource(R.string.exc_preview, p.matched, p.total),
                     style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 p.samples.forEach { s ->
@@ -287,7 +289,7 @@ private fun ExceptionSheet(vm: NotifiiViewModel, sheets: Sheets, e: VaultEntry) 
         },
         enabled = hasCondition,
         modifier = Modifier.fillMaxWidth().height(52.dp),
-    ) { Text("Save exception") }
+    ) { Text(stringResource(R.string.exc_save)) }
 }
 
 // ---------- Pick a rung (from the Ladder) ----------
@@ -302,7 +304,7 @@ private fun PickSheet(vm: NotifiiViewModel, sheets: Sheets, s: Sheet.Pick) {
         Spacer(Modifier.width(12.dp))
         Column {
             Text(s.label, style = MaterialTheme.typography.titleLarge)
-            Text(if (s.person.isEmpty()) "Everything from this app" else "Only this person", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(if (s.person.isEmpty()) stringResource(R.string.pick_app) else stringResource(R.string.pick_person), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
     Spacer(Modifier.height(16.dp))
@@ -319,14 +321,14 @@ private fun PickSheet(vm: NotifiiViewModel, sheets: Sheets, s: Sheet.Pick) {
             RungDot(r)
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text(r.label, style = MaterialTheme.typography.titleMedium)
-                Text(r.blurb, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(r.label(), style = MaterialTheme.typography.titleMedium)
+                Text(r.blurb(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
     if (current != null) {
         Spacer(Modifier.height(8.dp))
-        TextButton(onClick = { vm.unplace(current); sheets.current = null }) { Text("Remove from the ladder") }
+        TextButton(onClick = { vm.unplace(current); sheets.current = null }) { Text(stringResource(R.string.pick_remove)) }
     }
 }
 
@@ -343,15 +345,15 @@ private fun PaywallSheet(vm: NotifiiViewModel, sheets: Sheets) {
         Icon(Icons.Rounded.NotificationsActive, null, tint = Rung.SIREN.color(), modifier = Modifier.padding(16.dp))
     }
     Spacer(Modifier.height(16.dp))
-    Text("Never miss what matters", style = MaterialTheme.typography.headlineSmall)
+    Text(stringResource(R.string.pw_title), style = MaterialTheme.typography.headlineSmall)
     Spacer(Modifier.height(6.dp))
-    Text("Free includes one Siren and one exception. Pro removes the limits.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(stringResource(R.string.pw_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(20.dp))
     listOf(
-        "Siren for as many apps and people as you need",
-        "Unlimited exceptions",
-        "Pay once. No subscription, no ads",
-        "Still 100% offline",
+        stringResource(R.string.pw_1),
+        stringResource(R.string.pw_2),
+        stringResource(R.string.pw_3),
+        stringResource(R.string.pw_4),
     ).forEach { line ->
         Row(Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Rounded.CheckCircle, null, tint = MaterialTheme.colorScheme.primary)
@@ -362,13 +364,13 @@ private fun PaywallSheet(vm: NotifiiViewModel, sheets: Sheets) {
     Spacer(Modifier.height(24.dp))
     Button(
         onClick = {
-            if (!vm.billing.buy(context as Activity)) Toast.makeText(context, "Google Play isn’t reachable right now. Try again in a moment.", Toast.LENGTH_SHORT).show()
+            if (!vm.billing.buy(context as Activity)) Toast.makeText(context, context.getString(R.string.play_unreachable), Toast.LENGTH_SHORT).show()
         },
         modifier = Modifier.fillMaxWidth().height(56.dp),
-    ) { Text(if (price != null) "Get Pro · $price" else "Get Pro", style = MaterialTheme.typography.titleMedium) }
+    ) { Text(price?.let { stringResource(R.string.get_pro_price, it) } ?: stringResource(R.string.get_pro), style = MaterialTheme.typography.titleMedium) }
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        TextButton(onClick = { vm.billing.restore() }) { Text("Restore purchase") }
-        TextButton(onClick = { sheets.current = null }) { Text("Not now") }
+        TextButton(onClick = { vm.billing.restore() }) { Text(stringResource(R.string.restore_purchase)) }
+        TextButton(onClick = { sheets.current = null }) { Text(stringResource(R.string.not_now)) }
     }
 }
 
@@ -385,15 +387,15 @@ fun SirenCheckSheet(sheets: Sheets?) {
     }
     val ask = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { canNotify = it }
 
-    Text("Make Siren unmissable", style = MaterialTheme.typography.headlineSmall)
-    Text("Android needs your OK for each of these. It takes about 20 seconds.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(stringResource(R.string.sc_title), style = MaterialTheme.typography.headlineSmall)
+    Text(stringResource(R.string.sc_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Spacer(Modifier.height(16.dp))
-    NeedRow("Show the alarm", "Siren appears as a notification and full-screen alarm.", canNotify) { ask.launch(Manifest.permission.POST_NOTIFICATIONS) }
+    NeedRow(stringResource(R.string.sc_notify), stringResource(R.string.sc_notify_body), canNotify) { ask.launch(Manifest.permission.POST_NOTIFICATIONS) }
     needs.forEach { n -> NeedRow(n.title, n.why, n.ok) { n.fix?.let { runCatching { context.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } } } }
     if (sheets != null) {
         Spacer(Modifier.height(16.dp))
         Button(onClick = { sheets.current = null }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-            Text(if (canNotify && needs.all { it.ok }) "All set" else "Done for now")
+            Text(if (canNotify && needs.all { it.ok }) stringResource(R.string.sc_all_set) else stringResource(R.string.sc_later))
         }
     }
 }
@@ -406,7 +408,7 @@ private fun NeedRow(title: String, why: String, ok: Boolean, onFix: () -> Unit) 
             Text(why, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Spacer(Modifier.width(12.dp))
-        if (ok) Icon(Icons.Rounded.CheckCircle, contentDescription = "Done", tint = MaterialTheme.colorScheme.primary)
-        else FilledTonalButton(onClick = onFix, colors = ButtonDefaults.filledTonalButtonColors()) { Text("Allow") }
+        if (ok) Icon(Icons.Rounded.CheckCircle, contentDescription = stringResource(R.string.done), tint = MaterialTheme.colorScheme.primary)
+        else FilledTonalButton(onClick = onFix, colors = ButtonDefaults.filledTonalButtonColors()) { Text(stringResource(R.string.allow)) }
     }
 }

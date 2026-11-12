@@ -26,15 +26,15 @@ class NotifiiApp : Application() {
         nm.createNotificationChannels(
             listOf(
                 // The Siren service plays its own looping sound, so this channel stays silent.
-                NotificationChannel(CHANNEL_SIREN, "Siren", NotificationManager.IMPORTANCE_HIGH).apply {
-                    description = "The alarm screen for notifications you put on Siren."
+                NotificationChannel(CHANNEL_SIREN, getString(R.string.ch_siren), NotificationManager.IMPORTANCE_HIGH).apply {
+                    description = getString(R.string.ch_siren_desc)
                     setSound(null, null)
                     setBypassDnd(true)
                     lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 },
                 // Used only if Android refuses to start the Siren service; the channel itself rings.
-                NotificationChannel(CHANNEL_SIREN_FALLBACK, "Siren (backup)", NotificationManager.IMPORTANCE_HIGH).apply {
-                    description = "Rings when the full Siren can’t start."
+                NotificationChannel(CHANNEL_SIREN_FALLBACK, getString(R.string.ch_backup), NotificationManager.IMPORTANCE_HIGH).apply {
+                    description = getString(R.string.ch_backup_desc)
                     setSound(
                         RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM),
                         AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ALARM).build(),
@@ -43,8 +43,8 @@ class NotifiiApp : Application() {
                     enableVibration(true)
                     lockscreenVisibility = Notification.VISIBILITY_PUBLIC
                 },
-                NotificationChannel(CHANNEL_DIGEST, "Later digest", NotificationManager.IMPORTANCE_DEFAULT).apply {
-                    description = "Notifications you put on Later, delivered together."
+                NotificationChannel(CHANNEL_DIGEST, getString(R.string.ch_digest), NotificationManager.IMPORTANCE_DEFAULT).apply {
+                    description = getString(R.string.ch_digest_desc)
                 },
             )
         )

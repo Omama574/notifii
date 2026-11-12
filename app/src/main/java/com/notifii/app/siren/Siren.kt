@@ -80,7 +80,7 @@ object Siren {
             .setColor(ContextCompat.getColor(context, R.color.notifii_siren))
             .setContentTitle(payload.title.ifBlank { payload.appLabel })
             .setContentText(payload.text)
-            .setSubText("Siren · ${payload.appLabel}")
+            .setSubText(context.getString(R.string.siren_subtext, payload.appLabel))
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

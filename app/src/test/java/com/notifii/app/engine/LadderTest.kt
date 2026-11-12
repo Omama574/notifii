@@ -3,6 +3,7 @@ package com.notifii.app.engine
 import com.notifii.app.data.Placement
 import com.notifii.app.data.Rule
 import com.notifii.app.data.Rung
+import com.notifii.app.data.Why
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -28,7 +29,7 @@ class LadderTest {
         val d = decide(note("Acme invited you to an interview"), listOf(upworkLater), listOf(rule), 1, false)
         assertEquals(Rung.SIREN, d.rung)
         assertEquals(7L, d.ruleId)
-        assertTrue(d.reason.startsWith("Exception"))
+        assertEquals(Why.EXCEPTION, d.why)
     }
 
     @Test fun loudestMatchingExceptionWins() {
@@ -47,11 +48,14 @@ class LadderTest {
     @Test fun blankSenderIsNotAPerson() {
         val d = decide(note("hi", sender = ""), listOf(upworkLater), emptyList(), 1, false)
         assertEquals(Rung.LATER, d.rung)
-        assertEquals("Upwork is on Later", d.reason)
+        assertEquals(Why.APP, d.why)
+        assertEquals("Upwork", d.subject)
     }
 
     @Test fun nightHoldsRingButNotSiren() {
-        assertEquals(Rung.LATER, decide(note("hi"), emptyList(), emptyList(), 1, night = true).rung)
+        val held = decide(note("hi"), emptyList(), emptyList(), 1, night = true)
+        assertEquals(Rung.LATER, held.rung)
+        assertTrue(held.night)
         val siren = Placement("com.upwork", "", "Upwork", Rung.SIREN)
         assertEquals(Rung.SIREN, decide(note("hi"), listOf(siren), emptyList(), 1, night = true).rung)
     }
@@ -81,10 +85,6 @@ class LadderTest {
         assertFalse(inWindow(17 * 60, 9 * 60, 17 * 60))
     }
 
-    @Test fun describeReadsLikeASentence() {
-        val rule = Rule(pkg = "com.upwork", appLabel = "Upwork", sender = null, words = "invited you", rung = Rung.SIREN)
-        assertEquals("From Upwork · containing “invited you” → Siren", describe(rule))
-    }
 
     @Test fun wordSuggestions() {
         assertEquals(listOf("interview", "invited"), suggestWords("Acme invited you to an interview", max = 2))

@@ -1,5 +1,7 @@
 package com.notifii.app.siren
 
+import com.notifii.app.R
+import androidx.compose.ui.res.stringResource
 import android.app.Notification
 import android.content.Context
 import android.content.Intent
@@ -99,7 +101,7 @@ class SirenActivity : ComponentActivity() {
     }
 }
 
-private val QUICK_REPLIES = listOf("On it 👍", "Can’t talk, I’ll call you back", "Give me 5 minutes", "On my way")
+private val QUICK_REPLIES = listOf(R.string.quick_1, R.string.quick_2, R.string.quick_3, R.string.quick_4)
 
 @Composable
 private fun SirenScreen(onClose: () -> Unit) {
@@ -133,11 +135,11 @@ private fun SirenScreen(onClose: () -> Unit) {
                 Column(Modifier.weight(1f)) {
                     Text(p.appLabel, style = MaterialTheme.typography.titleMedium, color = Color.White)
                     Text(
-                        if (muted) "Silenced" else "Siren · ringing %d:%02d".format(seconds / 60, seconds % 60),
+                        if (muted) stringResource(R.string.silenced) else stringResource(R.string.siren_ringing, "%d:%02d".format(seconds / 60, seconds % 60)),
                         style = MaterialTheme.typography.labelLarge, color = if (muted) Color(0xFFA9ABB0) else SirenRed,
                     )
                 }
-                TextButton(onClick = { showWhy = !showWhy }) { Text("Why?", color = Color(0xFFA9ABB0)) }
+                TextButton(onClick = { showWhy = !showWhy }) { Text(stringResource(R.string.why_q), color = Color(0xFFA9ABB0)) }
             }
             if (showWhy) {
                 Spacer(Modifier.height(12.dp))
@@ -154,7 +156,7 @@ private fun SirenScreen(onClose: () -> Unit) {
             Spacer(Modifier.weight(1f))
             if (replyAction != null) {
                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    QUICK_REPLIES.forEach { q ->
+                    QUICK_REPLIES.map { stringResource(it) }.forEach { q ->
                         SuggestionChip(
                             onClick = { if (sendReply(context, replyAction, q)) { Siren.stop(context); onClose() } },
                             label = { Text(q) },
@@ -165,10 +167,10 @@ private fun SirenScreen(onClose: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
                     value = reply, onValueChange = { reply = it },
-                    placeholder = { Text("Reply") }, singleLine = true,
+                    placeholder = { Text(stringResource(R.string.reply)) }, singleLine = true,
                     trailingIcon = {
                         IconButton(onClick = { if (reply.isNotBlank() && sendReply(context, replyAction, reply)) { Siren.stop(context); onClose() } }) {
-                            Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send reply")
+                            Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = stringResource(R.string.send_reply))
                         }
                     },
                     colors = OutlinedTextFieldDefaults.colors(focusedTextColor = Color.White, unfocusedTextColor = Color.White),
@@ -182,17 +184,17 @@ private fun SirenScreen(onClose: () -> Unit) {
                     onClick = { com.notifii.app.service.Receivers.snoozeIntent(context, p).send(); onClose() },
                     modifier = Modifier.weight(1f).height(64.dp),
                     shape = RoundedCornerShape(20.dp),
-                ) { Text("Snooze 5 min", style = MaterialTheme.typography.titleMedium, color = Color.White) }
+                ) { Text(stringResource(R.string.snooze), style = MaterialTheme.typography.titleMedium, color = Color.White) }
                 Button(
                     onClick = { Siren.stop(context); onClose() },
                     modifier = Modifier.weight(1.4f).height(64.dp),
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = SirenRed, contentColor = Color.White),
-                ) { Text("Stop", style = MaterialTheme.typography.titleLarge) }
+                ) { Text(stringResource(R.string.stop), style = MaterialTheme.typography.titleLarge) }
             }
             Spacer(Modifier.height(12.dp))
             Text(
-                "Flip the phone face down or press a volume key to silence",
+                stringResource(R.string.flip_hint),
                 style = MaterialTheme.typography.bodySmall, color = Color(0xFF8D8F95),
                 modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
@@ -221,6 +223,6 @@ private fun sendReply(context: Context, action: Notification.Action, text: Strin
     val intent = Intent()
     android.app.RemoteInput.addResultsToIntent(inputs, intent, results)
     val ok = runCatching { action.actionIntent.send(context, 0, intent) }.isSuccess
-    Toast.makeText(context, if (ok) "Sent" else "Couldn’t send. Open the app to reply.", Toast.LENGTH_SHORT).show()
+    Toast.makeText(context, context.getString(if (ok) R.string.sent else R.string.reply_failed), Toast.LENGTH_SHORT).show()
     return ok
 }

@@ -14,13 +14,11 @@ import androidx.room.RoomDatabase
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
 
-/** The four loudness levels. Declared loudest first, so a lower ordinal is louder. */
-enum class Rung(val label: String, val blurb: String) {
-    SIREN("Siren", "Rings through silent and Do Not Disturb until you handle it"),
-    RING("Ring", "A normal notification"),
-    LATER("Later", "Held quietly and delivered at 12:00 and 18:00"),
-    HIDE("Hide", "Never shown. Still kept in your Vault"),
-}
+/** The four loudness levels. Declared loudest first, so a lower ordinal is louder. Labels live in strings.xml. */
+enum class Rung { SIREN, RING, LATER, HIDE }
+
+/** Why a notification got its rung. Stored as a code so the explanation shows in the phone's language. */
+enum class Why { EXCEPTION, PERSON, APP, UNSORTED }
 
 /** An app (`person == ""`) or one person inside an app, placed on a rung. */
 @Entity(tableName = "placements", primaryKeys = ["pkg", "person"])
@@ -61,8 +59,11 @@ data class VaultEntry(
     val sender: String?,
     val postedAt: Long,
     val rung: Rung,
-    /** Plain-language answer to "Why did this ring / wait / disappear?" */
-    val reason: String,
+    /** What decided it, and who it's about (a person or app name), for the "Why?" explanation. */
+    val why: Why,
+    val subject: String,
+    /** Night turned Ring into Later. */
+    val night: Boolean = false,
     val ruleId: Long? = null,
     /** A Later notification not yet delivered in a digest. */
     val pending: Boolean = false,

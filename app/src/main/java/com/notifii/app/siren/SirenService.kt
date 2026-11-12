@@ -88,15 +88,15 @@ class SirenService : Service(), SensorEventListener {
         .setColor(ContextCompat.getColor(this, R.color.notifii_siren))
         .setContentTitle(p.title.ifBlank { p.appLabel })
         .setContentText(p.text)
-        .setSubText("Siren · ${p.appLabel}")
+        .setSubText(getString(R.string.siren_subtext, p.appLabel))
         .setCategory(NotificationCompat.CATEGORY_ALARM)
         .setPriority(NotificationCompat.PRIORITY_MAX)
         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
         .setOngoing(true)
         .setFullScreenIntent(Siren.screenIntent(this, p), true)
         .setContentIntent(Siren.screenIntent(this, p))
-        .addAction(0, "Stop", PendingIntent.getService(this, 1, Intent(this, SirenService::class.java).setAction(Siren.ACTION_STOP), PendingIntent.FLAG_IMMUTABLE))
-        .addAction(0, "Snooze 5 min", Receivers.snoozeIntent(this, p))
+        .addAction(0, getString(R.string.stop), PendingIntent.getService(this, 1, Intent(this, SirenService::class.java).setAction(Siren.ACTION_STOP), PendingIntent.FLAG_IMMUTABLE))
+        .addAction(0, getString(R.string.snooze), Receivers.snoozeIntent(this, p))
         .build()
 
     private fun ring() {

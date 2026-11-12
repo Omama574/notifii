@@ -1,5 +1,7 @@
 package com.notifii.app.ui
 
+import com.notifii.app.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -97,22 +99,22 @@ fun OnboardingScreen(onDone: () -> Unit) {
         Spacer(Modifier.height(40.dp))
         LadderDemo()
         Spacer(Modifier.height(36.dp))
-        Text("Every notification at the right volume", style = MaterialTheme.typography.headlineLarge)
+        Text(stringResource(R.string.onb_title), style = MaterialTheme.typography.headlineLarge)
         Spacer(Modifier.height(12.dp))
         Text(
-            "Put each app or person on a rung: Siren for what you can’t miss, Later for what can wait, Hide for the noise.",
+            stringResource(R.string.onb_body),
             style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(24.dp))
-        Promise(Icons.Outlined.Inventory2, "Nothing is ever lost: every notification is kept in your Vault.")
-        Promise(Icons.Outlined.WifiOff, "No internet permission and no account. Nothing leaves this phone.")
+        Promise(Icons.Outlined.Inventory2, stringResource(R.string.onb_vault))
+        Promise(Icons.Outlined.WifiOff, stringResource(R.string.onb_offline))
         Spacer(Modifier.height(36.dp))
         Button(onClick = { openListenerSettings(context) }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
-            Text("Turn on Notifii", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.onb_cta), style = MaterialTheme.typography.titleMedium)
         }
         Spacer(Modifier.height(12.dp))
         Text(
-            "Android will ask to let Notifii read notifications. That’s how it sorts them. You can change everything later.",
+            stringResource(R.string.onb_fineprint),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(Modifier.height(24.dp))
@@ -131,11 +133,12 @@ private fun Promise(icon: androidx.compose.ui.graphics.vector.ImageVector, text:
 /** The mental model in one picture: four rungs, each with an example, sliding in one after another. */
 @Composable
 private fun LadderDemo() {
-    val examples = listOf(Rung.SIREN to "Mom, on-call alerts", Rung.RING to "Friends, work chat", Rung.LATER to "Shopping, news", Rung.HIDE to "Game rewards, promos")
+    val examples = listOf(Rung.SIREN to stringResource(R.string.onb_ex_siren), Rung.RING to stringResource(R.string.onb_ex_ring), Rung.LATER to stringResource(R.string.onb_ex_later), Rung.HIDE to stringResource(R.string.onb_ex_hide))
     var shown by remember { mutableStateOf(0) }
+    val ladderDesc = stringResource(R.string.onb_ladder_desc)
     LaunchedEffect(Unit) { while (shown < examples.size) { delay(220); shown++ } }
     Column(
-        Modifier.semantics { contentDescription = "The ladder: Siren, Ring, Later and Hide" },
+        Modifier.semantics { contentDescription = ladderDesc },
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         examples.forEachIndexed { i, (rung, example) ->
@@ -151,7 +154,7 @@ private fun LadderDemo() {
                 Row(Modifier.padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                     RungDot(rung, 12.dp)
                     Spacer(Modifier.width(12.dp))
-                    Text(rung.label, style = MaterialTheme.typography.titleMedium, color = rung.color())
+                    Text(rung.label(), style = MaterialTheme.typography.titleMedium, color = rung.color())
                     Spacer(Modifier.width(12.dp))
                     Text(example, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -170,15 +173,15 @@ fun MainScreen(vm: NotifiiViewModel, sheets: Sheets, startTab: String, onSetting
     var tab by rememberSaveable { mutableStateOf(startTab) }
     LaunchedEffect(startTab) { tab = startTab }
     val tabs = listOf(
-        Triple("now", "Now", Icons.Outlined.TipsAndUpdates to Icons.Rounded.TipsAndUpdates),
-        Triple("ladder", "Ladder", Icons.Outlined.Layers to Icons.Rounded.Layers),
-        Triple("vault", "Vault", Icons.Outlined.Inventory2 to Icons.Rounded.Inventory2),
+        Triple("now", stringResource(R.string.tab_now), Icons.Outlined.TipsAndUpdates to Icons.Rounded.TipsAndUpdates),
+        Triple("ladder", stringResource(R.string.tab_ladder), Icons.Outlined.Layers to Icons.Rounded.Layers),
+        Triple("vault", stringResource(R.string.tab_vault), Icons.Outlined.Inventory2 to Icons.Rounded.Inventory2),
     )
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(tabs.first { it.first == tab }.second, style = MaterialTheme.typography.headlineSmall) },
-                actions = { IconButton(onClick = onSettings) { Icon(Icons.Outlined.Settings, contentDescription = "Settings") } },
+                actions = { IconButton(onClick = onSettings) { Icon(Icons.Outlined.Settings, contentDescription = stringResource(R.string.settings)) } },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
             )
         },
@@ -223,8 +226,8 @@ fun SettingsScreen(vm: NotifiiViewModel, sheets: Sheets, onBack: () -> Unit) {
         modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
         topBar = {
             LargeTopAppBar(
-                title = { Text("Settings") },
-                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back") } },
+                title = { Text(stringResource(R.string.settings)) },
+                navigationIcon = { IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = stringResource(R.string.back)) } },
                 scrollBehavior = scroll,
             )
         },
@@ -236,38 +239,38 @@ fun SettingsScreen(vm: NotifiiViewModel, sheets: Sheets, onBack: () -> Unit) {
             item {
                 Card(color = MaterialTheme.colorScheme.primaryContainer) {
                     if (pro) {
-                        Text("Notifii Pro", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                        Text("Unlimited Siren and exceptions. Thank you for supporting an independent app.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(stringResource(R.string.pro_title), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(stringResource(R.string.pro_owned), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     } else {
-                        Text("Notifii Pro", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                        Text("Siren for everyone who matters, and unlimited exceptions. Pay once.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(stringResource(R.string.pro_title), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Text(stringResource(R.string.pro_pitch), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         Spacer(Modifier.height(12.dp))
                         Button(onClick = { sheets.current = Sheet.Paywall }, modifier = Modifier.fillMaxWidth().height(52.dp)) {
-                            Text(if (price != null) "Get Pro · $price" else "Get Pro")
+                            Text(price?.let { stringResource(R.string.get_pro_price, it) } ?: stringResource(R.string.get_pro))
                         }
                     }
                 }
             }
             item {
                 Card {
-                    Text("Siren", style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.set_siren), style = MaterialTheme.typography.titleLarge)
                     Spacer(Modifier.height(4.dp))
-                    SettingSwitch("Read it aloud", "Says who it’s from and what it says.", readAloud) { vm.prefs.setReadAloud(it) }
-                    SettingSwitch("Flip to silence", "Turn the phone face down to stop the alarm.", flip) { vm.prefs.setFlipToSilence(it) }
+                    SettingSwitch(stringResource(R.string.set_read_aloud), stringResource(R.string.set_read_aloud_body), readAloud) { vm.prefs.setReadAloud(it) }
+                    SettingSwitch(stringResource(R.string.set_flip), stringResource(R.string.set_flip_body), flip) { vm.prefs.setFlipToSilence(it) }
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        OutlinedButton(onClick = { sheets.current = Sheet.SirenCheck }, modifier = Modifier.weight(1f)) { Text("Siren check") }
+                        OutlinedButton(onClick = { sheets.current = Sheet.SirenCheck }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.siren_check)) }
                         Button(onClick = {
-                            Siren.start(context, SirenPayload(0, context.packageName, "Notifii", "This is a test Siren", "Flip the phone, press a volume key or tap Stop.", "You pressed Test Siren in Settings"))
-                        }, modifier = Modifier.weight(1f)) { Text("Test Siren") }
+                            Siren.start(context, SirenPayload(0, context.packageName, context.getString(R.string.app_name), context.getString(R.string.test_siren_title), context.getString(R.string.test_siren_body), context.getString(R.string.why_test)))
+                        }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.test_siren)) }
                     }
                 }
             }
             item {
                 Card {
-                    Text("Keep the Vault for", style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(R.string.set_keep), style = MaterialTheme.typography.titleLarge)
                     Spacer(Modifier.height(12.dp))
-                    val options = listOf(30 to "30 days", 90 to "90 days", 0 to "Forever")
+                    val options = listOf(30 to stringResource(R.string.days_30), 90 to stringResource(R.string.days_90), 0 to stringResource(R.string.forever))
                     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                         options.forEachIndexed { i, (days, label) ->
                             SegmentedButton(selected = keepDays == days, onClick = { vm.prefs.setKeepDays(days) }, shape = SegmentedButtonDefaults.itemShape(i, options.size)) { Text(label) }
@@ -281,8 +284,8 @@ fun SettingsScreen(vm: NotifiiViewModel, sheets: Sheets, onBack: () -> Unit) {
                         Icon(Icons.Outlined.WifiOff, null, tint = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.width(16.dp))
                         Column {
-                            Text("Private by design", style = MaterialTheme.typography.titleMedium)
-                            Text("Notifii has no internet permission and no account. Your notifications never leave this phone, and they’re left out of cloud backups.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.private_title), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(R.string.private_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -292,13 +295,13 @@ fun SettingsScreen(vm: NotifiiViewModel, sheets: Sheets, onBack: () -> Unit) {
                     Row(Modifier.fillMaxWidth().clickable { confirmClear = true }.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.DeleteForever, null, tint = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.width(16.dp))
-                        Text("Empty the Vault", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
+                        Text(stringResource(R.string.empty_vault), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
             item {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text("Notifii ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -306,10 +309,10 @@ fun SettingsScreen(vm: NotifiiViewModel, sheets: Sheets, onBack: () -> Unit) {
     if (confirmClear) {
         AlertDialog(
             onDismissRequest = { confirmClear = false },
-            title = { Text("Empty the Vault?") },
-            text = { Text("Every saved notification is deleted for good. Your ladder and exceptions stay.") },
-            confirmButton = { TextButton(onClick = { vm.clearVault(); confirmClear = false }) { Text("Empty") } },
-            dismissButton = { TextButton(onClick = { confirmClear = false }) { Text("Cancel") } },
+            title = { Text(stringResource(R.string.empty_vault_title)) },
+            text = { Text(stringResource(R.string.empty_vault_body)) },
+            confirmButton = { TextButton(onClick = { vm.clearVault(); confirmClear = false }) { Text(stringResource(R.string.empty)) } },
+            dismissButton = { TextButton(onClick = { confirmClear = false }) { Text(stringResource(R.string.cancel)) } },
         )
     }
 }

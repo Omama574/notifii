@@ -1,5 +1,7 @@
 package com.notifii.app.ui
 
+import com.notifii.app.R
+import androidx.compose.ui.res.stringResource
 import android.app.TimePickerDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -52,7 +54,6 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.notifii.app.data.Placement
 import com.notifii.app.data.Rung
 import com.notifii.app.data.VaultEntry
-import com.notifii.app.engine.describe
 import com.notifii.app.ui.theme.color
 
 // =====================================================================
@@ -75,10 +76,10 @@ fun NowTab(vm: NotifiiViewModel, sheets: Sheets, padding: PaddingValues) {
                     Icon(Icons.Outlined.PauseCircle, null, tint = MaterialTheme.colorScheme.onErrorContainer)
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("Notifii is paused", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onErrorContainer)
-                        Text("Notification access is off, so nothing is being sorted.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
+                        Text(stringResource(R.string.paused_title), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onErrorContainer)
+                        Text(stringResource(R.string.paused_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
                     }
-                    FilledTonalButton(onClick = { openListenerSettings(context) }) { Text("Turn on") }
+                    FilledTonalButton(onClick = { openListenerSettings(context) }) { Text(stringResource(R.string.turn_on)) }
                 }
             }
         }
@@ -88,15 +89,15 @@ fun NowTab(vm: NotifiiViewModel, sheets: Sheets, padding: PaddingValues) {
                     RungDot(Rung.LATER, 12.dp)
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("${pending.size} waiting for later", style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.waiting_later, pending.size), style = MaterialTheme.typography.titleMedium)
                         Text(pending.map { it.appLabel }.distinct().take(3).joinToString(", "), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
-                    TextButton(onClick = { vm.deliverNow() }) { Text("Deliver now") }
+                    TextButton(onClick = { vm.deliverNow() }) { Text(stringResource(R.string.deliver_now)) }
                 }
             }
         }
         if (triage.isNotEmpty()) {
-            item { SectionLabel("Sort your loudest apps") }
+            item { SectionLabel(stringResource(R.string.sort_loudest)) }
             items(triage, key = { "triage-${it.pkg}" }) { app ->
                 Card(Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -104,21 +105,21 @@ fun NowTab(vm: NotifiiViewModel, sheets: Sheets, padding: PaddingValues) {
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(app.appLabel, style = MaterialTheme.typography.titleMedium)
-                            Text("${app.count} notifications this week. How loud should it be?", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(stringResource(R.string.triage_body, app.count), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
-                        IconButton(onClick = { vm.prefs.dismissTriage(app.pkg) }) { Icon(Icons.Rounded.Close, contentDescription = "Not now") }
+                        IconButton(onClick = { vm.prefs.dismissTriage(app.pkg) }) { Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.not_now)) }
                     }
                     Spacer(Modifier.height(12.dp))
                     RungSelector(null) { placeAndFollowUp(vm, sheets, context, app.pkg, "", app.appLabel, it) }
                 }
             }
         }
-        item { SectionLabel("Today") }
+        item { SectionLabel(stringResource(R.string.time_today)) }
         val list = today
         when {
             list == null -> Unit
             list.isEmpty() -> item {
-                EmptyState(Icons.Outlined.Inbox, "All quiet so far", "Notifications land here as they arrive, each with the rung it went to. Tap one to change how loud it is.")
+                EmptyState(Icons.Outlined.Inbox, stringResource(R.string.quiet_title), stringResource(R.string.quiet_body))
             }
             else -> items(list, key = { it.id }) { e -> EntryRow(e) { sheets.current = Sheet.Why(e) } }
         }
@@ -150,15 +151,15 @@ fun LadderTab(vm: NotifiiViewModel, sheets: Sheets, padding: PaddingValues) {
                         RungDot(rung, 14.dp)
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(rung.label, style = MaterialTheme.typography.titleLarge)
-                            Text(rung.blurb, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(rung.label(), style = MaterialTheme.typography.titleLarge)
+                            Text(rung.blurb(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     val here = placements.filter { it.rung == rung }
                     if (here.isEmpty()) {
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            if (rung == Rung.RING) "Every app you haven’t sorted rings normally." else "Nothing here yet. Tap a notification in Now to move it.",
+                            if (rung == Rung.RING) stringResource(R.string.ring_unsorted) else stringResource(R.string.rung_empty),
                             style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -168,18 +169,18 @@ fun LadderTab(vm: NotifiiViewModel, sheets: Sheets, padding: PaddingValues) {
         }
         item(key = "rules") {
             Card {
-                Text("Exceptions", style = MaterialTheme.typography.titleLarge)
-                Text("Specific notifications that skip their app’s rung. The loudest match wins.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.exceptions), style = MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.exceptions_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (rules.isEmpty()) {
                     Spacer(Modifier.height(8.dp))
-                    Text("Open any notification and choose “Make an exception”.", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.exceptions_empty), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 rules.forEach { r ->
                     Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                         RungDot(r.rung)
                         Spacer(Modifier.width(12.dp))
-                        Text(describe(r), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                        IconButton(onClick = { vm.deleteRule(r) }) { Icon(Icons.Rounded.Close, contentDescription = "Delete exception") }
+                        Text(describe(context, r), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+                        IconButton(onClick = { vm.deleteRule(r) }) { Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.delete_exception)) }
                     }
                 }
             }
@@ -190,16 +191,16 @@ fun LadderTab(vm: NotifiiViewModel, sheets: Sheets, padding: PaddingValues) {
                     Icon(Icons.Outlined.Bedtime, null, tint = Rung.LATER.color())
                     Spacer(Modifier.width(12.dp))
                     Column(Modifier.weight(1f)) {
-                        Text("Night", style = MaterialTheme.typography.titleLarge)
-                        Text("Ring waits for morning. Siren still rings.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.night), style = MaterialTheme.typography.titleLarge)
+                        Text(stringResource(R.string.night_body), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     Switch(checked = nightOn, onCheckedChange = { vm.prefs.setNightOn(it) })
                 }
                 if (nightOn) {
                     Spacer(Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TimeButton("From", nightStart) { vm.prefs.setNightStart(it) }
-                        TimeButton("Until", nightEnd) { vm.prefs.setNightEnd(it) }
+                        TimeButton(R.string.night_from, nightStart) { vm.prefs.setNightStart(it) }
+                        TimeButton(R.string.night_until, nightEnd) { vm.prefs.setNightEnd(it) }
                     }
                 }
             }
@@ -209,7 +210,7 @@ fun LadderTab(vm: NotifiiViewModel, sheets: Sheets, padding: PaddingValues) {
                 Icon(Icons.Outlined.Schedule, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Later is delivered at ${clockLabel(context, 12 * 60)} and ${clockLabel(context, 18 * 60)}" + if (nightOn) ", and when Night ends." else ".",
+                    stringResource(if (nightOn) R.string.digest_times_night else R.string.digest_times, clockLabel(context, 12 * 60), clockLabel(context, 18 * 60)),
                     style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
@@ -231,18 +232,18 @@ private fun PlacementRow(p: Placement, onClick: () -> Unit) {
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(p.label, style = MaterialTheme.typography.bodyLarge)
-            if (!p.isApp) Text("Person", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (!p.isApp) Text(stringResource(R.string.person), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        Icon(Icons.Rounded.ChevronRight, contentDescription = "Change rung", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+        Icon(Icons.Rounded.ChevronRight, contentDescription = stringResource(R.string.change_rung), tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 @Composable
-private fun TimeButton(label: String, minute: Int, onPick: (Int) -> Unit) {
+private fun TimeButton(@androidx.annotation.StringRes label: Int, minute: Int, onPick: (Int) -> Unit) {
     val context = LocalContext.current
     FilledTonalButton(onClick = {
         TimePickerDialog(context, { _, h, m -> onPick(h * 60 + m) }, minute / 60, minute % 60, android.text.format.DateFormat.is24HourFormat(context)).show()
-    }) { Text("$label ${clockLabel(context, minute)}") }
+    }) { Text(stringResource(label, clockLabel(context, minute))) }
 }
 
 // =====================================================================
@@ -254,31 +255,32 @@ fun VaultTab(vm: NotifiiViewModel, sheets: Sheets, padding: PaddingValues) {
     val query by vm.vaultQuery.collectAsState()
     val filter by vm.vaultFilter.collectAsState()
     val entries by vm.vault.collectAsState()
+    val context = LocalContext.current
 
     Column(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding())) {
         OutlinedTextField(
             value = query, onValueChange = { vm.vaultQuery.value = it },
-            placeholder = { Text("Search every notification") },
+            placeholder = { Text(stringResource(R.string.vault_search)) },
             leadingIcon = { Icon(Icons.Rounded.Search, null) },
-            trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { vm.vaultQuery.value = "" }) { Icon(Icons.Rounded.Close, contentDescription = "Clear search") } },
+            trailingIcon = { if (query.isNotEmpty()) IconButton(onClick = { vm.vaultQuery.value = "" }) { Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.clear_search)) } },
             singleLine = true, shape = RoundedCornerShape(28.dp),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         )
         Row(Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = filter == null, onClick = { vm.vaultFilter.value = null }, label = { Text("All") })
+            FilterChip(selected = filter == null, onClick = { vm.vaultFilter.value = null }, label = { Text(stringResource(R.string.filter_all)) })
             Rung.entries.forEach { r ->
-                FilterChip(selected = filter == r, onClick = { vm.vaultFilter.value = if (filter == r) null else r }, label = { Text(r.label) }, leadingIcon = { RungDot(r, 8.dp) })
+                FilterChip(selected = filter == r, onClick = { vm.vaultFilter.value = if (filter == r) null else r }, label = { Text(r.label()) }, leadingIcon = { RungDot(r, 8.dp) })
             }
         }
         val list = entries
         when {
             list == null -> Unit
-            list.isEmpty() && query.isBlank() && filter == null -> EmptyState(Icons.Outlined.Inventory2, "Your Vault is empty", "Every notification is kept here, even the ones you hide, so nothing is ever really lost.")
-            list.isEmpty() -> EmptyState(Icons.Outlined.SearchOff, "No matches", "Try another word or rung.")
+            list.isEmpty() && query.isBlank() && filter == null -> EmptyState(Icons.Outlined.Inventory2, stringResource(R.string.vault_empty_title), stringResource(R.string.vault_empty_body))
+            list.isEmpty() -> EmptyState(Icons.Outlined.SearchOff, stringResource(R.string.no_matches), stringResource(R.string.no_matches_body))
             else -> LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = padding.calculateBottomPadding() + 16.dp)) {
                 var lastDay = ""
                 list.forEach { e ->
-                    val day = dayLabel(e.postedAt)
+                    val day = dayLabel(context, e.postedAt)
                     if (day != lastDay) { lastDay = day; item(key = "day-$day-${e.id}") { SectionLabel(day) } }
                     item(key = e.id) { EntryRow(e) { sheets.current = Sheet.Why(e) } }
                 }
